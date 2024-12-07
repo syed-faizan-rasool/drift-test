@@ -1,76 +1,73 @@
-import "package:drift/drift.dart";
-
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 part 'data.g.dart';
 
-
-class Student extends Table
-{
-
-IntColumn get id => integer().autoIncrement()();
-TextColumn get name => text()();
-TextColumn get subject => text()();
-
+// Students Table Definition
+@DataClassName("Student")
+class Students extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get age => integer()();
+  IntColumn get marks => integer()();
 }
 
+@DriftDatabase(tables: [Students])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
 
-class Marks extends Table
-{
+  @override
+  int get schemaVersion => 1;
 
-IntColumn get id => integer().autoIncrement()();
-IntColumn get englishmarks => integer()();
-IntColumn get urdumarks => integer()();
   
+  Future<List<Student>> getAllStudents() => select(students).get();
+
+
+  Future<int> insertStudent(StudentsCompanion student) => into(students).insert(student);
+
+
+Future<bool> updateStudent(int id, StudentsCompanion student) async {
+  // Check if the student exists first by ID
+  final existingStudent = await (select(students)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+
+  if (existingStudent != null) {
+    // If the student exists, update them with the new values
+    try {
+      final result = await update(students).replace(student);
+      
+      // If update is successful, return true
+      if (result != 0) {
+        print('Student updated successfully');
+        return true;
+      } else {
+        print('Update failed, no rows affected.');
+        return false;
+      }
+    } catch (e) {
+      print("Error updating student: $e");
+      return false;
+    }
+  } else {
+    print("Student with id $id not found.");
+    return false;
+  }
 }
 
-abstract class StudentView extends View
-{
 
-Student get student;
-@override
-  Query as()=> select([
 
-student.name
 
-  ]).from(student);
+  Future<int> deleteStudent(int id) {
+    return (delete(students)..where((tbl) => tbl.id.equals(id))).go();
   }
+}
 
-
-abstract class MarksView extends View
-{
-
-Marks get marks;
-@override
-  Query as()=> select([
-
-marks.englishmarks
-
-  ]).from(marks);
-  }
-
-
-  @DriftDatabase(tables: [
-    Student,Marks
-  ],
-  views:[
-    StudentView
-  ]
-  )
-
-
-
-  class Database extends _$Database 
-  {
-
-Database(QueryExecutor e): super (e);
-
-int get schemaVersion => 2;
-
-  }
-
-
-
-
-
-
-
+// Open the connection to the database
+LazyDatabase _openConnection() {
+  return LazyDatabase(() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/app_database.sqlite');
+    return NativeDatabase(file);
+  });
+}

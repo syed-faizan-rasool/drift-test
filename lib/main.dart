@@ -1,15 +1,29 @@
-import "package:drift/native.dart";
-
-import 'data.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_drift/Views/homepage.dart';
+import 'data.dart'; 
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize the Drift database
+  final db = AppDatabase();
+
  
-final db = Database(NativeDatabase.memory());
+  runApp(MyApp(db: db));
+}
 
-await db.into(db.student).insert(StudentCompanion.insert(name: "Syed Faizan Rasool" , subject: "Computer"));
-await db.into(db.student).insert(StudentCompanion.insert(name: "Zaheer Abbas" , subject: "Computer Science"));
- 
+class MyApp extends StatelessWidget {
+  final AppDatabase db;
 
-(await db.select(db.student).get()).forEach(print);
+  const MyApp({super.key, required this.db});
 
-} 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Drift Example',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomePage(db: db), // Pass database to the HomePage
+    );
+  }
+}

@@ -3,11 +3,11 @@
 part of 'data.dart';
 
 // ignore_for_file: type=lint
-class $StudentTable extends Student with TableInfo<$StudentTable, StudentData> {
+class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $StudentTable(this.attachedDatabase, [this._alias]);
+  $StudentsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -22,21 +22,25 @@ class $StudentTable extends Student with TableInfo<$StudentTable, StudentData> {
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _subjectMeta =
-      const VerificationMeta('subject');
+  static const VerificationMeta _ageMeta = const VerificationMeta('age');
   @override
-  late final GeneratedColumn<String> subject = GeneratedColumn<String>(
-      'subject', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+  late final GeneratedColumn<int> age = GeneratedColumn<int>(
+      'age', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _marksMeta = const VerificationMeta('marks');
   @override
-  List<GeneratedColumn> get $columns => [id, name, subject];
+  late final GeneratedColumn<int> marks = GeneratedColumn<int>(
+      'marks', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, age, marks];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'student';
+  static const String $name = 'students';
   @override
-  VerificationContext validateIntegrity(Insertable<StudentData> instance,
+  VerificationContext validateIntegrity(Insertable<Student> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -49,11 +53,17 @@ class $StudentTable extends Student with TableInfo<$StudentTable, StudentData> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('subject')) {
-      context.handle(_subjectMeta,
-          subject.isAcceptableOrUnknown(data['subject']!, _subjectMeta));
+    if (data.containsKey('age')) {
+      context.handle(
+          _ageMeta, age.isAcceptableOrUnknown(data['age']!, _ageMeta));
     } else if (isInserting) {
-      context.missing(_subjectMeta);
+      context.missing(_ageMeta);
+    }
+    if (data.containsKey('marks')) {
+      context.handle(
+          _marksMeta, marks.isAcceptableOrUnknown(data['marks']!, _marksMeta));
+    } else if (isInserting) {
+      context.missing(_marksMeta);
     }
     return context;
   }
@@ -61,54 +71,63 @@ class $StudentTable extends Student with TableInfo<$StudentTable, StudentData> {
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  StudentData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Student map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudentData(
+    return Student(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      subject: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}subject'])!,
+      age: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}age'])!,
+      marks: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}marks'])!,
     );
   }
 
   @override
-  $StudentTable createAlias(String alias) {
-    return $StudentTable(attachedDatabase, alias);
+  $StudentsTable createAlias(String alias) {
+    return $StudentsTable(attachedDatabase, alias);
   }
 }
 
-class StudentData extends DataClass implements Insertable<StudentData> {
+class Student extends DataClass implements Insertable<Student> {
   final int id;
   final String name;
-  final String subject;
-  const StudentData(
-      {required this.id, required this.name, required this.subject});
+  final int age;
+  final int marks;
+  const Student(
+      {required this.id,
+      required this.name,
+      required this.age,
+      required this.marks});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    map['subject'] = Variable<String>(subject);
+    map['age'] = Variable<int>(age);
+    map['marks'] = Variable<int>(marks);
     return map;
   }
 
-  StudentCompanion toCompanion(bool nullToAbsent) {
-    return StudentCompanion(
+  StudentsCompanion toCompanion(bool nullToAbsent) {
+    return StudentsCompanion(
       id: Value(id),
       name: Value(name),
-      subject: Value(subject),
+      age: Value(age),
+      marks: Value(marks),
     );
   }
 
-  factory StudentData.fromJson(Map<String, dynamic> json,
+  factory Student.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudentData(
+    return Student(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      subject: serializer.fromJson<String>(json['subject']),
+      age: serializer.fromJson<int>(json['age']),
+      marks: serializer.fromJson<int>(json['marks']),
     );
   }
   @override
@@ -117,77 +136,92 @@ class StudentData extends DataClass implements Insertable<StudentData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'subject': serializer.toJson<String>(subject),
+      'age': serializer.toJson<int>(age),
+      'marks': serializer.toJson<int>(marks),
     };
   }
 
-  StudentData copyWith({int? id, String? name, String? subject}) => StudentData(
+  Student copyWith({int? id, String? name, int? age, int? marks}) => Student(
         id: id ?? this.id,
         name: name ?? this.name,
-        subject: subject ?? this.subject,
+        age: age ?? this.age,
+        marks: marks ?? this.marks,
       );
-  StudentData copyWithCompanion(StudentCompanion data) {
-    return StudentData(
+  Student copyWithCompanion(StudentsCompanion data) {
+    return Student(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      subject: data.subject.present ? data.subject.value : this.subject,
+      age: data.age.present ? data.age.value : this.age,
+      marks: data.marks.present ? data.marks.value : this.marks,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('StudentData(')
+    return (StringBuffer('Student(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('subject: $subject')
+          ..write('age: $age, ')
+          ..write('marks: $marks')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, subject);
+  int get hashCode => Object.hash(id, name, age, marks);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is StudentData &&
+      (other is Student &&
           other.id == this.id &&
           other.name == this.name &&
-          other.subject == this.subject);
+          other.age == this.age &&
+          other.marks == this.marks);
 }
 
-class StudentCompanion extends UpdateCompanion<StudentData> {
+class StudentsCompanion extends UpdateCompanion<Student> {
   final Value<int> id;
   final Value<String> name;
-  final Value<String> subject;
-  const StudentCompanion({
+  final Value<int> age;
+  final Value<int> marks;
+  const StudentsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.subject = const Value.absent(),
+    this.age = const Value.absent(),
+    this.marks = const Value.absent(),
   });
-  StudentCompanion.insert({
+  StudentsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required String subject,
+    required int age,
+    required int marks,
   })  : name = Value(name),
-        subject = Value(subject);
-  static Insertable<StudentData> custom({
+        age = Value(age),
+        marks = Value(marks);
+  static Insertable<Student> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<String>? subject,
+    Expression<int>? age,
+    Expression<int>? marks,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (subject != null) 'subject': subject,
+      if (age != null) 'age': age,
+      if (marks != null) 'marks': marks,
     });
   }
 
-  StudentCompanion copyWith(
-      {Value<int>? id, Value<String>? name, Value<String>? subject}) {
-    return StudentCompanion(
+  StudentsCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<int>? age,
+      Value<int>? marks}) {
+    return StudentsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      subject: subject ?? this.subject,
+      age: age ?? this.age,
+      marks: marks ?? this.marks,
     );
   }
 
@@ -200,347 +234,54 @@ class StudentCompanion extends UpdateCompanion<StudentData> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (subject.present) {
-      map['subject'] = Variable<String>(subject.value);
+    if (age.present) {
+      map['age'] = Variable<int>(age.value);
+    }
+    if (marks.present) {
+      map['marks'] = Variable<int>(marks.value);
     }
     return map;
   }
 
   @override
   String toString() {
-    return (StringBuffer('StudentCompanion(')
+    return (StringBuffer('StudentsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('subject: $subject')
+          ..write('age: $age, ')
+          ..write('marks: $marks')
           ..write(')'))
         .toString();
   }
 }
 
-class $MarksTable extends Marks with TableInfo<$MarksTable, Mark> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $MarksTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-      'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
-  static const VerificationMeta _englishmarksMeta =
-      const VerificationMeta('englishmarks');
-  @override
-  late final GeneratedColumn<int> englishmarks = GeneratedColumn<int>(
-      'englishmarks', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _urdumarksMeta =
-      const VerificationMeta('urdumarks');
-  @override
-  late final GeneratedColumn<int> urdumarks = GeneratedColumn<int>(
-      'urdumarks', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  @override
-  List<GeneratedColumn> get $columns => [id, englishmarks, urdumarks];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'marks';
-  @override
-  VerificationContext validateIntegrity(Insertable<Mark> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('englishmarks')) {
-      context.handle(
-          _englishmarksMeta,
-          englishmarks.isAcceptableOrUnknown(
-              data['englishmarks']!, _englishmarksMeta));
-    } else if (isInserting) {
-      context.missing(_englishmarksMeta);
-    }
-    if (data.containsKey('urdumarks')) {
-      context.handle(_urdumarksMeta,
-          urdumarks.isAcceptableOrUnknown(data['urdumarks']!, _urdumarksMeta));
-    } else if (isInserting) {
-      context.missing(_urdumarksMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Mark map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Mark(
-      id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      englishmarks: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}englishmarks'])!,
-      urdumarks: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}urdumarks'])!,
-    );
-  }
-
-  @override
-  $MarksTable createAlias(String alias) {
-    return $MarksTable(attachedDatabase, alias);
-  }
-}
-
-class Mark extends DataClass implements Insertable<Mark> {
-  final int id;
-  final int englishmarks;
-  final int urdumarks;
-  const Mark(
-      {required this.id, required this.englishmarks, required this.urdumarks});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['englishmarks'] = Variable<int>(englishmarks);
-    map['urdumarks'] = Variable<int>(urdumarks);
-    return map;
-  }
-
-  MarksCompanion toCompanion(bool nullToAbsent) {
-    return MarksCompanion(
-      id: Value(id),
-      englishmarks: Value(englishmarks),
-      urdumarks: Value(urdumarks),
-    );
-  }
-
-  factory Mark.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Mark(
-      id: serializer.fromJson<int>(json['id']),
-      englishmarks: serializer.fromJson<int>(json['englishmarks']),
-      urdumarks: serializer.fromJson<int>(json['urdumarks']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'englishmarks': serializer.toJson<int>(englishmarks),
-      'urdumarks': serializer.toJson<int>(urdumarks),
-    };
-  }
-
-  Mark copyWith({int? id, int? englishmarks, int? urdumarks}) => Mark(
-        id: id ?? this.id,
-        englishmarks: englishmarks ?? this.englishmarks,
-        urdumarks: urdumarks ?? this.urdumarks,
-      );
-  Mark copyWithCompanion(MarksCompanion data) {
-    return Mark(
-      id: data.id.present ? data.id.value : this.id,
-      englishmarks: data.englishmarks.present
-          ? data.englishmarks.value
-          : this.englishmarks,
-      urdumarks: data.urdumarks.present ? data.urdumarks.value : this.urdumarks,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('Mark(')
-          ..write('id: $id, ')
-          ..write('englishmarks: $englishmarks, ')
-          ..write('urdumarks: $urdumarks')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, englishmarks, urdumarks);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Mark &&
-          other.id == this.id &&
-          other.englishmarks == this.englishmarks &&
-          other.urdumarks == this.urdumarks);
-}
-
-class MarksCompanion extends UpdateCompanion<Mark> {
-  final Value<int> id;
-  final Value<int> englishmarks;
-  final Value<int> urdumarks;
-  const MarksCompanion({
-    this.id = const Value.absent(),
-    this.englishmarks = const Value.absent(),
-    this.urdumarks = const Value.absent(),
-  });
-  MarksCompanion.insert({
-    this.id = const Value.absent(),
-    required int englishmarks,
-    required int urdumarks,
-  })  : englishmarks = Value(englishmarks),
-        urdumarks = Value(urdumarks);
-  static Insertable<Mark> custom({
-    Expression<int>? id,
-    Expression<int>? englishmarks,
-    Expression<int>? urdumarks,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (englishmarks != null) 'englishmarks': englishmarks,
-      if (urdumarks != null) 'urdumarks': urdumarks,
-    });
-  }
-
-  MarksCompanion copyWith(
-      {Value<int>? id, Value<int>? englishmarks, Value<int>? urdumarks}) {
-    return MarksCompanion(
-      id: id ?? this.id,
-      englishmarks: englishmarks ?? this.englishmarks,
-      urdumarks: urdumarks ?? this.urdumarks,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (englishmarks.present) {
-      map['englishmarks'] = Variable<int>(englishmarks.value);
-    }
-    if (urdumarks.present) {
-      map['urdumarks'] = Variable<int>(urdumarks.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MarksCompanion(')
-          ..write('id: $id, ')
-          ..write('englishmarks: $englishmarks, ')
-          ..write('urdumarks: $urdumarks')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class StudentViewData extends DataClass {
-  final String name;
-  const StudentViewData({required this.name});
-  factory StudentViewData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudentViewData(
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  StudentViewData copyWith({String? name}) => StudentViewData(
-        name: name ?? this.name,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('StudentViewData(')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => name.hashCode;
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudentViewData && other.name == this.name);
-}
-
-class $StudentViewView extends ViewInfo<$StudentViewView, StudentViewData>
-    implements HasResultSet {
-  final String? _alias;
-  @override
-  final _$Database attachedDatabase;
-  $StudentViewView(this.attachedDatabase, [this._alias]);
-  $StudentTable get student => attachedDatabase.student.createAlias('t0');
-  @override
-  List<GeneratedColumn> get $columns => [name];
-  @override
-  String get aliasedName => _alias ?? entityName;
-  @override
-  String get entityName => 'student_view';
-  @override
-  Map<SqlDialect, String>? get createViewStatements => null;
-  @override
-  $StudentViewView get asDslTable => this;
-  @override
-  StudentViewData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudentViewData(
-      name: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-    );
-  }
-
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-      'name', aliasedName, false,
-      generatedAs: GeneratedAs(student.name, false), type: DriftSqlType.string);
-  @override
-  $StudentViewView createAlias(String alias) {
-    return $StudentViewView(attachedDatabase, alias);
-  }
-
-  @override
-  Query? get query =>
-      (attachedDatabase.selectOnly(student)..addColumns($columns));
-  @override
-  Set<String> get readTables => const {'student'};
-}
-
-abstract class _$Database extends GeneratedDatabase {
-  _$Database(QueryExecutor e) : super(e);
-  $DatabaseManager get managers => $DatabaseManager(this);
-  late final $StudentTable student = $StudentTable(this);
-  late final $MarksTable marks = $MarksTable(this);
-  late final $StudentViewView studentView = $StudentViewView(this);
+abstract class _$AppDatabase extends GeneratedDatabase {
+  _$AppDatabase(QueryExecutor e) : super(e);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $StudentsTable students = $StudentsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [student, marks, studentView];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [students];
 }
 
-typedef $$StudentTableCreateCompanionBuilder = StudentCompanion Function({
+typedef $$StudentsTableCreateCompanionBuilder = StudentsCompanion Function({
   Value<int> id,
   required String name,
-  required String subject,
+  required int age,
+  required int marks,
 });
-typedef $$StudentTableUpdateCompanionBuilder = StudentCompanion Function({
+typedef $$StudentsTableUpdateCompanionBuilder = StudentsCompanion Function({
   Value<int> id,
   Value<String> name,
-  Value<String> subject,
+  Value<int> age,
+  Value<int> marks,
 });
 
-class $$StudentTableFilterComposer extends Composer<_$Database, $StudentTable> {
-  $$StudentTableFilterComposer({
+class $$StudentsTableFilterComposer
+    extends Composer<_$AppDatabase, $StudentsTable> {
+  $$StudentsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -553,13 +294,16 @@ class $$StudentTableFilterComposer extends Composer<_$Database, $StudentTable> {
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get subject => $composableBuilder(
-      column: $table.subject, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get age => $composableBuilder(
+      column: $table.age, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get marks => $composableBuilder(
+      column: $table.marks, builder: (column) => ColumnFilters(column));
 }
 
-class $$StudentTableOrderingComposer
-    extends Composer<_$Database, $StudentTable> {
-  $$StudentTableOrderingComposer({
+class $$StudentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StudentsTable> {
+  $$StudentsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -572,13 +316,16 @@ class $$StudentTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get subject => $composableBuilder(
-      column: $table.subject, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get age => $composableBuilder(
+      column: $table.age, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get marks => $composableBuilder(
+      column: $table.marks, builder: (column) => ColumnOrderings(column));
 }
 
-class $$StudentTableAnnotationComposer
-    extends Composer<_$Database, $StudentTable> {
-  $$StudentTableAnnotationComposer({
+class $$StudentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StudentsTable> {
+  $$StudentsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -591,51 +338,58 @@ class $$StudentTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get subject =>
-      $composableBuilder(column: $table.subject, builder: (column) => column);
+  GeneratedColumn<int> get age =>
+      $composableBuilder(column: $table.age, builder: (column) => column);
+
+  GeneratedColumn<int> get marks =>
+      $composableBuilder(column: $table.marks, builder: (column) => column);
 }
 
-class $$StudentTableTableManager extends RootTableManager<
-    _$Database,
-    $StudentTable,
-    StudentData,
-    $$StudentTableFilterComposer,
-    $$StudentTableOrderingComposer,
-    $$StudentTableAnnotationComposer,
-    $$StudentTableCreateCompanionBuilder,
-    $$StudentTableUpdateCompanionBuilder,
-    (StudentData, BaseReferences<_$Database, $StudentTable, StudentData>),
-    StudentData,
+class $$StudentsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $StudentsTable,
+    Student,
+    $$StudentsTableFilterComposer,
+    $$StudentsTableOrderingComposer,
+    $$StudentsTableAnnotationComposer,
+    $$StudentsTableCreateCompanionBuilder,
+    $$StudentsTableUpdateCompanionBuilder,
+    (Student, BaseReferences<_$AppDatabase, $StudentsTable, Student>),
+    Student,
     PrefetchHooks Function()> {
-  $$StudentTableTableManager(_$Database db, $StudentTable table)
+  $$StudentsTableTableManager(_$AppDatabase db, $StudentsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$StudentTableFilterComposer($db: db, $table: table),
+              $$StudentsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$StudentTableOrderingComposer($db: db, $table: table),
+              $$StudentsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$StudentTableAnnotationComposer($db: db, $table: table),
+              $$StudentsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<String> subject = const Value.absent(),
+            Value<int> age = const Value.absent(),
+            Value<int> marks = const Value.absent(),
           }) =>
-              StudentCompanion(
+              StudentsCompanion(
             id: id,
             name: name,
-            subject: subject,
+            age: age,
+            marks: marks,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String name,
-            required String subject,
+            required int age,
+            required int marks,
           }) =>
-              StudentCompanion.insert(
+              StudentsCompanion.insert(
             id: id,
             name: name,
-            subject: subject,
+            age: age,
+            marks: marks,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -644,151 +398,22 @@ class $$StudentTableTableManager extends RootTableManager<
         ));
 }
 
-typedef $$StudentTableProcessedTableManager = ProcessedTableManager<
-    _$Database,
-    $StudentTable,
-    StudentData,
-    $$StudentTableFilterComposer,
-    $$StudentTableOrderingComposer,
-    $$StudentTableAnnotationComposer,
-    $$StudentTableCreateCompanionBuilder,
-    $$StudentTableUpdateCompanionBuilder,
-    (StudentData, BaseReferences<_$Database, $StudentTable, StudentData>),
-    StudentData,
-    PrefetchHooks Function()>;
-typedef $$MarksTableCreateCompanionBuilder = MarksCompanion Function({
-  Value<int> id,
-  required int englishmarks,
-  required int urdumarks,
-});
-typedef $$MarksTableUpdateCompanionBuilder = MarksCompanion Function({
-  Value<int> id,
-  Value<int> englishmarks,
-  Value<int> urdumarks,
-});
-
-class $$MarksTableFilterComposer extends Composer<_$Database, $MarksTable> {
-  $$MarksTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get englishmarks => $composableBuilder(
-      column: $table.englishmarks, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get urdumarks => $composableBuilder(
-      column: $table.urdumarks, builder: (column) => ColumnFilters(column));
-}
-
-class $$MarksTableOrderingComposer extends Composer<_$Database, $MarksTable> {
-  $$MarksTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get englishmarks => $composableBuilder(
-      column: $table.englishmarks,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get urdumarks => $composableBuilder(
-      column: $table.urdumarks, builder: (column) => ColumnOrderings(column));
-}
-
-class $$MarksTableAnnotationComposer extends Composer<_$Database, $MarksTable> {
-  $$MarksTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get englishmarks => $composableBuilder(
-      column: $table.englishmarks, builder: (column) => column);
-
-  GeneratedColumn<int> get urdumarks =>
-      $composableBuilder(column: $table.urdumarks, builder: (column) => column);
-}
-
-class $$MarksTableTableManager extends RootTableManager<
-    _$Database,
-    $MarksTable,
-    Mark,
-    $$MarksTableFilterComposer,
-    $$MarksTableOrderingComposer,
-    $$MarksTableAnnotationComposer,
-    $$MarksTableCreateCompanionBuilder,
-    $$MarksTableUpdateCompanionBuilder,
-    (Mark, BaseReferences<_$Database, $MarksTable, Mark>),
-    Mark,
-    PrefetchHooks Function()> {
-  $$MarksTableTableManager(_$Database db, $MarksTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$MarksTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MarksTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MarksTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<int> englishmarks = const Value.absent(),
-            Value<int> urdumarks = const Value.absent(),
-          }) =>
-              MarksCompanion(
-            id: id,
-            englishmarks: englishmarks,
-            urdumarks: urdumarks,
-          ),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required int englishmarks,
-            required int urdumarks,
-          }) =>
-              MarksCompanion.insert(
-            id: id,
-            englishmarks: englishmarks,
-            urdumarks: urdumarks,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ));
-}
-
-typedef $$MarksTableProcessedTableManager = ProcessedTableManager<
-    _$Database,
-    $MarksTable,
-    Mark,
-    $$MarksTableFilterComposer,
-    $$MarksTableOrderingComposer,
-    $$MarksTableAnnotationComposer,
-    $$MarksTableCreateCompanionBuilder,
-    $$MarksTableUpdateCompanionBuilder,
-    (Mark, BaseReferences<_$Database, $MarksTable, Mark>),
-    Mark,
+typedef $$StudentsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $StudentsTable,
+    Student,
+    $$StudentsTableFilterComposer,
+    $$StudentsTableOrderingComposer,
+    $$StudentsTableAnnotationComposer,
+    $$StudentsTableCreateCompanionBuilder,
+    $$StudentsTableUpdateCompanionBuilder,
+    (Student, BaseReferences<_$AppDatabase, $StudentsTable, Student>),
+    Student,
     PrefetchHooks Function()>;
 
-class $DatabaseManager {
-  final _$Database _db;
-  $DatabaseManager(this._db);
-  $$StudentTableTableManager get student =>
-      $$StudentTableTableManager(_db, _db.student);
-  $$MarksTableTableManager get marks =>
-      $$MarksTableTableManager(_db, _db.marks);
+class $AppDatabaseManager {
+  final _$AppDatabase _db;
+  $AppDatabaseManager(this._db);
+  $$StudentsTableTableManager get students =>
+      $$StudentsTableTableManager(_db, _db.students);
 }
